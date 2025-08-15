@@ -3,6 +3,7 @@ import { AppController } from "./app.controller";
 import { Module } from "@nestjs/common";
 import { APP_GUARD } from "@nestjs/core";
 import { betterAuth } from "better-auth";
+import { bearer } from "better-auth/plugins";
 
 @Module({
   imports: [
@@ -10,10 +11,11 @@ import { betterAuth } from "better-auth";
     AuthModule.forRoot({
       betterAuth: betterAuth({
         basePath: "/auth",
-        secret: "hehe",
+        secret: "123qwe",
         emailAndPassword: {
           enabled: true,
         },
+        plugins: [bearer()],
       }),
       options: {
         routingProvider: "express",
