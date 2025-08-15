@@ -1,0 +1,3 @@
+export const BETTER_AUTH_INSTANCE_TOKEN = Symbol("BETTER_AUTH_INSTANCE");
+export const AUTH_MODULE_OPTIONS_TOKEN = Symbol("AUTH_MODULE_OPTIONS");
+export const IS_PUBLIC_KEY = Symbol("IS_PUBLIC");
