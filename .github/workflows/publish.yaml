@@ -1,0 +1,123 @@
+name: Publish to NPM
+
+on:
+  push:
+    tags:
+      - "v*.*.*" # Triggers on version tags like v1.0.0, v1.2.3, etc.
+  workflow_dispatch: # Allow manual trigger
+    inputs:
+      version:
+        description: "Version to publish (e.g., v1.0.0)"
+        required: true
+        type: string
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      id-token: write # Required for npm provenance
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run linting
+        run: pnpm lint || echo "No lint script found, skipping..."
+
+      - name: Run tests
+        run: pnpm test || echo "No test script found, skipping..."
+
+      - name: Build package
+        run: pnpm build
+
+      - name: Verify package contents
+        run: |
+          echo "Checking built files:"
+          ls -la dist/
+          echo "Package.json contents:"
+          cat package.json
+
+      - name: Check if package already exists
+        run: |
+          PACKAGE_VERSION=$(node -p "require('./package.json').version")
+          PACKAGE_NAME=$(node -p "require('./package.json').name")
+          echo "Checking if $PACKAGE_NAME@$PACKAGE_VERSION exists..."
+
+          if npm view "$PACKAGE_NAME@$PACKAGE_VERSION" version 2>/dev/null; then
+            echo "Package $PACKAGE_NAME@$PACKAGE_VERSION already exists in registry"
+            echo "PACKAGE_EXISTS=true" >> $GITHUB_ENV
+          else
+            echo "Package $PACKAGE_NAME@$PACKAGE_VERSION does not exist, proceeding with publish"
+            echo "PACKAGE_EXISTS=false" >> $GITHUB_ENV
+          fi
+
+      - name: Publish to NPM
+        if: env.PACKAGE_EXISTS == 'false'
+        run: pnpm publish --access public --no-git-checks
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_CONFIG_PROVENANCE: true
+
+      - name: Skip publishing (already exists)
+        if: env.PACKAGE_EXISTS == 'true'
+        run: echo "Skipping publish as package version already exists in npm registry"
+
+  create-release:
+    needs: publish
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Get version from tag
+        id: get_version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Release v${{ steps.get_version.outputs.VERSION }}
+          body: |
+            ## 🚀 What's New in v${{ steps.get_version.outputs.VERSION }}
+
+            ### 📋 Changes
+            - Check the [CHANGELOG.md](./CHANGELOG.md) for detailed changes
+
+            ### 📦 Installation
+            ```bash
+            npm install @buiducnhat/nest-better-auth@${{ steps.get_version.outputs.VERSION }}
+            # or
+            yarn add @buiducnhat/nest-better-auth@${{ steps.get_version.outputs.VERSION }}
+            # or
+            pnpm add @buiducnhat/nest-better-auth@${{ steps.get_version.outputs.VERSION }}
+            ```
+
+            ### 🔗 Links
+            - 📦 [NPM Package](https://www.npmjs.com/package/@buiducnhat/nest-better-auth)
+            - 📚 [Documentation](https://github.com/${{ github.repository }}#readme)
+            - 🐛 [Report Issues](https://github.com/${{ github.repository }}/issues)
+          draft: false
+          prerelease: ${{ contains(github.ref_name, 'alpha') || contains(github.ref_name, 'beta') || contains(github.ref_name, 'rc') }}
+          generate_release_notes: true

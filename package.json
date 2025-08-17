@@ -36,7 +36,9 @@
   ],
   "scripts": {
     "prebuild": "rimraf dist",
-    "build": "rimraf dist && tsup src/index.ts --dts --format esm,cjs --sourcemap --clean"
+    "build": "rimraf dist && tsup src/index.ts --dts --format esm,cjs --sourcemap --clean",
+    "lint": "eslint . --ext .ts,.js,.tsx,.jsx",
+    "format": "prettier --write \"src/**/*.{ts,js,json,md}\""
   },
   "packageManager": "pnpm@10.11.0",
   "peerDependencies": {

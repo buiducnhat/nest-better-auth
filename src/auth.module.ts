@@ -124,11 +124,10 @@ export class AuthModule extends ConfigurableModuleClass implements NestModule {
       });
     } else if (this.options?.routingProvider === "fastify") {
       consumer
-        .apply((request: FastifyRequest["raw"], reply: FastifyReply["raw"], next: () => void) => {
+        .apply((request: FastifyRequest["raw"], reply: FastifyReply["raw"]) => {
           // Convert Fastify headers to standard Headers object
           const headers = new Headers();
           Object.entries(request.headers).forEach(([key, value]) => {
-            // eslint-disable-next-line @typescript-eslint/no-base-to-string
             if (value) headers.append(key, value.toString());
           });
 
@@ -155,8 +154,6 @@ export class AuthModule extends ConfigurableModuleClass implements NestModule {
 
             // Forward response to client
             reply.end(response.body ? await response.text() : null);
-
-            next();
           });
         })
         .forRoutes({ path: `${basePath}/*path`, method: RequestMethod.ALL });
