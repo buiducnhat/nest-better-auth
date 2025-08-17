@@ -40,7 +40,6 @@
     "lint": "eslint . --ext .ts,.js,.tsx,.jsx",
     "format": "prettier --write \"src/**/*.{ts,js,json,md}\""
   },
-  "packageManager": "pnpm@10.11.0",
   "peerDependencies": {
     "@nestjs/common": "^11.1.6",
     "@nestjs/core": "^11.1.6",
