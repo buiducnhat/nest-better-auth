@@ -22,25 +22,6 @@ import { bearer } from "better-auth/plugins";
         jsonParser: true,
       },
     }),
-    // // Use forRootAsync by passing a factory function that returns the betterAuth instance and options
-    // // For example, we can inject the config service, the database instance, etc.
-    // AuthModule.forRootAsync({
-    //   imports: [ConfigModule],
-    //   inject: [ConfigService],
-    //   useFactory: (configService: ConfigService) => ({
-    //     betterAuth: betterAuth({
-    //       basePath: "/auth",
-    //       secret: configService.get("betterAuthSecret"),
-    //       emailAndPassword: {
-    //         enabled: true,
-    //       },
-    //     }),
-    //     options: {
-    //       routingProvider: "express",
-    //       jsonParser: true,
-    //     },
-    //   }),
-    // }),
   ],
   controllers: [AppController],
   providers: [

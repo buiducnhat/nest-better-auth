@@ -36,7 +36,11 @@ export class AuthModule extends ConfigurableModuleClass implements NestModule {
         },
         {
           provide: AUTH_MODULE_OPTIONS_TOKEN,
-          useValue: options.options,
+          useValue: {
+            ...(options.options || {}),
+            routingProvider: options.options?.routingProvider || "express",
+            jsonParser: options.options?.jsonParser ?? true,
+          },
         },
       ],
       exports: [BETTER_AUTH_INSTANCE_TOKEN, AUTH_MODULE_OPTIONS_TOKEN],
@@ -57,12 +61,20 @@ export class AuthModule extends ConfigurableModuleClass implements NestModule {
         {
           inject: [MODULE_OPTIONS_TOKEN],
           provide: BETTER_AUTH_INSTANCE_TOKEN,
-          useFactory: (moduleOptions: AuthModuleOptions) => moduleOptions.betterAuth,
+          useFactory: (moduleOptions: AuthModuleOptions) => {
+            return moduleOptions.betterAuth;
+          },
         },
         {
           inject: [MODULE_OPTIONS_TOKEN],
           provide: AUTH_MODULE_OPTIONS_TOKEN,
-          useFactory: (moduleOptions: AuthModuleOptions) => moduleOptions.options,
+          useFactory: (moduleOptions: AuthModuleOptions) => {
+            return {
+              ...(moduleOptions.options || {}),
+              routingProvider: moduleOptions.options?.routingProvider || "express",
+              jsonParser: moduleOptions.options?.jsonParser ?? true,
+            };
+          },
         },
       ],
       exports: [BETTER_AUTH_INSTANCE_TOKEN, AUTH_MODULE_OPTIONS_TOKEN],
