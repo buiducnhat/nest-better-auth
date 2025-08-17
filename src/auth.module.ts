@@ -19,6 +19,7 @@ import {
 import { type Auth } from "better-auth";
 import { toNodeHandler } from "better-auth/node";
 import express from "express";
+import { FastifyReply, FastifyRequest } from "fastify";
 
 @Global()
 @Module({})
@@ -109,6 +110,46 @@ export class AuthModule extends ConfigurableModuleClass implements NestModule {
         path: `${basePath}/*path`,
         method: RequestMethod.ALL,
       });
+    } else if (this.options?.routingProvider === "fastify") {
+      consumer
+        .apply((request: FastifyRequest["raw"], reply: FastifyReply["raw"], next: () => void) => {
+          // Convert Fastify headers to standard Headers object
+          const headers = new Headers();
+          Object.entries(request.headers).forEach(([key, value]) => {
+            // eslint-disable-next-line @typescript-eslint/no-base-to-string
+            if (value) headers.append(key, value.toString());
+          });
+
+          // Get body from request
+          let body = "";
+          request.on("data", (chunk) => (body += chunk));
+          request.on("end", async () => {
+            // Create Fetch API-compatible request
+            const req = new Request(
+              `http://${request.headers.host}${(request as any).originalUrl}`,
+              {
+                method: request.method,
+                headers,
+                body: body || undefined,
+              },
+            );
+
+            // Process authentication request
+            const response = await this.auth.handler(req);
+
+            // Set headers and status code
+            reply.setHeaders(response.headers);
+            reply.statusCode = response.status;
+
+            // Forward response to client
+            reply.end(response.body ? await response.text() : null);
+
+            next();
+          });
+        })
+        .forRoutes({ path: `${basePath}/*path`, method: RequestMethod.ALL });
+    } else {
+      throw new Error("Invalid routing provider");
     }
 
     this.logger.log("AuthModule initialized with BetterAuth");
