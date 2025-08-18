@@ -16,7 +16,7 @@ export class AuthGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const request = context.switchToHttp().getRequest();
+    const request = this.getRequest(context);
     const session = await this.auth.api.getSession({
       headers: fromNodeHeaders(request.headers),
     });
@@ -40,5 +40,9 @@ export class AuthGuard implements CanActivate {
       });
 
     return true;
+  }
+
+  getRequest<T = any>(context: ExecutionContext): T {
+    return context.switchToHttp().getRequest();
   }
 }
