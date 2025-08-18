@@ -18,7 +18,8 @@ A NestJS integration library for [better-auth](https://www.better-auth.com/), pr
 
 Before you start, make sure you have a Better Auth instance configured. If you haven't done that yet, check out the [installation](https://www.better-auth.com/docs/installation).
 
-> Note: This is not the official library of Better Auth. It is a community-driven library that is not officially supported by Better Auth.
+> [!WARNING]
+> This is not the official library of Better Auth. It is a community-driven library that is not officially supported by Better Auth.
 
 ```bash
 npm install @buiducnhat/nest-better-auth
@@ -67,11 +68,12 @@ import { betterAuth } from "better-auth";
 export class AppModule {}
 ```
 
-Due to [this document](https://www.better-auth.com/docs/integrations/express#mount-the-handler):
-
+> [!WARNING]
+> Due to [this document](https://www.better-auth.com/docs/integrations/express#mount-the-handler):
+>
 > Don’t use express.json() before the Better Auth handler. Use it only for other routes, or the client API will get stuck on "pending".
-
-So, you need to turn off the `bodyParser` option on `main.ts` file.
+>
+> So, you need to turn off the `bodyParser` option on `main.ts` file.
 
 ```typescript
 async function bootstrap() {
@@ -208,7 +210,7 @@ import { betterAuth } from "better-auth";
 export class AppModule {}
 ```
 
-### Configuration File Example
+#### Configuration File Example
 
 ```typescript
 // config/configuration.ts
@@ -222,6 +224,44 @@ export default () => ({
     },
   },
 });
+```
+
+### Use the better-auth instance
+
+You can use the better-auth instance to access the Better Auth API:
+
+```typescript
+import { auth } from "@/libs/auth";
+// Use can create a dedicated auth.ts like better-auth traditional way for using cli, and infer its type for fully support API
+import {
+  AuthGuard,
+  BETTER_AUTH_INSTANCE_TOKEN,
+  Session,
+  type UserSession,
+} from "@buiducnhat/nest-better-auth";
+import { Controller, Get, Inject, Req, UseGuards } from "@nestjs/common";
+import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
+import { fromNodeHeaders } from "better-auth/node";
+import type { Request } from "express";
+
+@ApiTags("Admin Users")
+@ApiBearerAuth()
+@Controller("admin/users")
+@UseGuards(AuthGuard)
+export class AdminUsersController {
+  constructor(@Inject(BETTER_AUTH_INSTANCE_TOKEN) private readonly authInstance: typeof auth) {}
+  // You can absolutely use the Auth type from better-auth
+  // import { Auth } from "better-auth";
+  // ...
+  // constructor(@Inject(BETTER_AUTH_INSTANCE_TOKEN) private readonly authInstance: Auth) {}
+
+  @Get("/")
+  getUsers(@Session() session: UserSession, @Req() req: Request) {
+    return this.authInstance.api.listUserAccounts({
+      headers: fromNodeHeaders(req.headers),
+    });
+  }
+}
 ```
 
 ## API Reference
