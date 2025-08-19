@@ -24,3 +24,9 @@
 ### Fixed
 
 - **🛠️ Fix missing export**: Fix missing export decorator `CurrentUser`
+
+## [1.1.0] - 2025-08-19
+
+### Added
+
+- **🆕 Add extend types options**: Add generic types options to extend the types of the `UserSession` and `User`.
