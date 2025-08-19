@@ -12,3 +12,15 @@
 - **📌 Add AuthModuleOptions**: Add AuthModuleOptions to configure the module.
 - **📌 Add AuthModule**: Add AuthModule to configure the module.
 - **📌 Add AuthModuleOptions**: Add AuthModuleOptions to configure the module.
+
+## [1.0.1] - 2025-08-18
+
+### Changed
+
+- **📌 Update README example**: Update README.md to enhance documentation with warning notes and new usage examples for better-auth integration, including a detailed AdminUsersController implementation.
+
+## [1.0.2] - 2025-08-19
+
+### Fixed
+
+- **🛠️ Fix missing export**: Fix missing export decorator `CurrentUser`
